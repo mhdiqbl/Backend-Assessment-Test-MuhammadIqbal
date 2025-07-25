@@ -129,7 +129,6 @@ class DebitCardControllerTest extends TestCase
         $debitCardUser1 = DebitCard::factory()->active()->create([
             'user_id' => $user1->id,
         ]);
-//        dd($debitCardUser1);
 
         // Acting as a user 2
         $this->actingAs($user2, 'api');
@@ -143,6 +142,32 @@ class DebitCardControllerTest extends TestCase
     public function testCustomerCanActivateADebitCard()
     {
         // put api/debit-cards/{debitCard}
+        $debitCard = DebitCard::factory()->expired()->create([
+                'user_id' => $this->user->id,
+            ]);
+
+        $payload = [
+            'is_active' => true
+        ];
+
+        $response = $this->putJson("api/debit-cards/{$debitCard->id}", $payload);
+
+        $response
+            ->assertOk()
+            ->assertJson([
+                'id' => $debitCard->id,
+                'number' => (int)$debitCard->number,
+                'type' => $debitCard->type,
+                'expiration_date' => $debitCard->expiration_date->format('Y-m-d H:i:s'),
+                'is_active' => true,
+            ]);
+
+        $this->assertDatabaseHas('debit_cards', [
+            'user_id' => $this->user->id,
+            'disabled_at' => null,
+            'type' => $debitCard->type,
+            'number' => $debitCard->number,
+        ]);
     }
 
     public function testCustomerCanDeactivateADebitCard()
