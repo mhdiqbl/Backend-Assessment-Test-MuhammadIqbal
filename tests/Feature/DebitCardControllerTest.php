@@ -24,6 +24,7 @@ class DebitCardControllerTest extends TestCase
     public function testCustomerCanSeeAListOfDebitCards()
     {
         // get /debit-cards
+        // Create debit cards
         $debitCards = DebitCard::factory()->count(2)->active()->create([
             'user_id' => $this->user->id,
         ]);
@@ -33,9 +34,10 @@ class DebitCardControllerTest extends TestCase
         ]);
 
         $response->assertStatus(200);
-
+        // Check response contains two data
         $this->assertCount(2, $response->json());
 
+        // Check response structure
         foreach ($debitCards as $card) {
             $response->assertJsonFragment([
                 'id' => $card->id,
@@ -50,6 +52,21 @@ class DebitCardControllerTest extends TestCase
     public function testCustomerCannotSeeAListOfDebitCardsOfOtherCustomers()
     {
         // get /debit-cards
+        $user1 = User::factory()->create();
+        $user2 = User::factory()->create();
+
+        // Create debit Card for user 1
+        DebitCard::factory()->count(2)->active()->create([
+            'user_id' => $user1->id,
+        ]);
+
+        // Acting as a user 2
+        $this->actingAs($user2, 'api');
+
+        $response = $this->getJson('/api/debit-cards');
+
+        $response->assertStatus(200);
+        $response->assertJsonCount(0, $response->json());
     }
 
     public function testCustomerCanCreateADebitCard()
