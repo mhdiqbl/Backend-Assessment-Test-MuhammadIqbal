@@ -107,7 +107,7 @@ class DebitCardControllerTest extends TestCase
             ]);
 
         $response = $this->getJson("api/debit-cards/{$debitCard->id}");
-        
+
         $response
             ->assertOk()
             ->assertJson([
@@ -122,6 +122,22 @@ class DebitCardControllerTest extends TestCase
     public function testCustomerCannotSeeASingleDebitCardDetails()
     {
         // get api/debit-cards/{debitCard}
+        $user1 = User::factory()->create();
+        $user2 = User::factory()->create();
+
+        // Create debit Card for user 1
+        $debitCardUser1 = DebitCard::factory()->active()->create([
+            'user_id' => $user1->id,
+        ]);
+//        dd($debitCardUser1);
+
+        // Acting as a user 2
+        $this->actingAs($user2, 'api');
+
+        $response = $this->getJson("api/debit-cards/{$debitCardUser1->id}");
+
+        $response->assertStatus(403);
+        $response->assertJsonStructure([]);
     }
 
     public function testCustomerCanActivateADebitCard()
