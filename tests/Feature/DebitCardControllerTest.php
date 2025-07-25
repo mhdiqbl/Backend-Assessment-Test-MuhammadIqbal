@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\DebitCard;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use Laravel\Passport\Passport;
 use Tests\TestCase;
 
@@ -159,7 +160,7 @@ class DebitCardControllerTest extends TestCase
                 'number' => (int)$debitCard->number,
                 'type' => $debitCard->type,
                 'expiration_date' => $debitCard->expiration_date->format('Y-m-d H:i:s'),
-                'is_active' => true,
+                'is_active' => $payload['is_active'],
             ]);
 
         $this->assertDatabaseHas('debit_cards', [
@@ -173,6 +174,32 @@ class DebitCardControllerTest extends TestCase
     public function testCustomerCanDeactivateADebitCard()
     {
         // put api/debit-cards/{debitCard}
+        $debitCard = DebitCard::factory()->active()->create([
+            'user_id' => $this->user->id,
+        ]);
+
+        $payload = [
+            'is_active' => false
+        ];
+
+        $response = $this->putJson("api/debit-cards/{$debitCard->id}", $payload);
+
+        $response
+            ->assertOk()
+            ->assertJson([
+                'id' => $debitCard->id,
+                'number' => (int)$debitCard->number,
+                'type' => $debitCard->type,
+                'expiration_date' => $debitCard->expiration_date->format('Y-m-d H:i:s'),
+                'is_active' => $payload['is_active'],
+            ]);
+
+        $this->assertDatabaseHas('debit_cards', [
+            'user_id' => $this->user->id,
+            'disabled_at' => Carbon::now(),
+            'type' => $debitCard->type,
+            'number' => $debitCard->number,
+        ]);
     }
 
     public function testCustomerCannotUpdateADebitCardWithWrongValidation()
