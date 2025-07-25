@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\DebitCard;
+use App\Models\DebitCardTransaction;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
@@ -238,6 +239,20 @@ class DebitCardControllerTest extends TestCase
     public function testCustomerCannotDeleteADebitCardWithTransaction()
     {
         // delete api/debit-cards/{debitCard}
+        $debitCard = DebitCard::factory()->active()->create([
+            'user_id' => $this->user->id,
+        ]);
+        DebitCardTransaction::factory()->count(2)->create([
+            'debit_card_id' => $debitCard->id,
+        ]);
+
+        $response = $this->deleteJson("api/debit-cards/{$debitCard->id}");
+
+        $response->assertStatus(403);
+
+        $this->assertDatabaseHas('debit_cards', [
+            'id' => $debitCard->id,
+        ]);
     }
 
     // Extra bonus for extra tests :)
