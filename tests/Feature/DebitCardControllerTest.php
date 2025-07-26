@@ -256,4 +256,14 @@ class DebitCardControllerTest extends TestCase
     }
 
     // Extra bonus for extra tests :)
+    public function testOnlyActiveDebitCardsAreListedInIndex()
+    {
+        DebitCard::factory()->active()->count(5)->create(['user_id' => $this->user->id]);
+        DebitCard::factory()->expired()->count(1)->create(['user_id' => $this->user->id]);
+
+        $response = $this->getJson('/api/debit-cards');
+
+        $response->assertStatus(200);
+        $this->assertCount(5, $response->json());
+    }
 }
