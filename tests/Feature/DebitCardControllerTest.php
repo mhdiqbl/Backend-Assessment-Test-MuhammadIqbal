@@ -309,4 +309,13 @@ class DebitCardControllerTest extends TestCase
         $response->assertStatus(422)->assertJsonValidationErrors('type');
     }
 
+    public function testCreatedDebitCardHasOneYearExpiry()
+    {
+        $response = $this->postJson('/api/debit-cards', ['type' => 'MasterCard']);
+
+        $expirationDate = Carbon::parse($response->json('expiration_date'));
+
+        $this->assertTrue($expirationDate->isSameDay(now()->addYear()));
+    }
+
 }
