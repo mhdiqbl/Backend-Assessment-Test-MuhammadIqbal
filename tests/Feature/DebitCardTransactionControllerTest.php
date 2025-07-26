@@ -148,4 +148,11 @@ class DebitCardTransactionControllerTest extends TestCase
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['amount']);
     }
+
+    public function testEmptyTransactionListReturnsEmptyArray()
+    {
+        $response = $this->getJson("/api/debit-card-transactions?debit_card_id={$this->debitCard->id}");
+
+        $response->assertOk()->assertExactJson([]);
+    }
 }
