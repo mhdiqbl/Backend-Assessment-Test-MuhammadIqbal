@@ -301,4 +301,12 @@ class DebitCardControllerTest extends TestCase
             'disabled_at' => null,
         ]);
     }
+
+    public function testCreateADebitCardFailsWithoutType()
+    {
+        $response = $this->postJson('/api/debit-cards', []);
+
+        $response->assertStatus(422)->assertJsonValidationErrors('type');
+    }
+
 }
