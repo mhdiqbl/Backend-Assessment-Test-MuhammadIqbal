@@ -318,4 +318,14 @@ class DebitCardControllerTest extends TestCase
         $this->assertTrue($expirationDate->isSameDay(now()->addYear()));
     }
 
+    public function testDeletedDebitCardIsSoftDeleted()
+    {
+        $debitCard = DebitCard::factory()->active()->create([
+            'user_id' => $this->user->id
+        ]);
+
+        $this->deleteJson("/api/debit-cards/{$debitCard->id}");
+
+        $this->assertSoftDeleted('debit_cards', ['id' => $debitCard->id]);
+    }
 }
