@@ -285,4 +285,20 @@ class DebitCardControllerTest extends TestCase
             'disabled_at' => null,
         ]);
     }
+
+    public function testCustomerCannotDeleteDebitCardOfAnotherUser()
+    {
+        $otherUser = User::factory()->create();
+        $debitCard = DebitCard::factory()->active()->create([
+            'user_id' => $otherUser->id,
+        ]);
+
+        $response = $this->deleteJson("/api/debit-cards/{$debitCard->id}");
+
+        $response->assertForbidden();
+        $this->assertDatabaseHas('debit_cards', [
+            'user_id' => $debitCard->user_id,
+            'disabled_at' => null,
+        ]);
+    }
 }
