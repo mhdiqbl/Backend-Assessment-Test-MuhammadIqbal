@@ -266,4 +266,23 @@ class DebitCardControllerTest extends TestCase
         $response->assertStatus(200);
         $this->assertCount(5, $response->json());
     }
+
+    public function testCustomerCannotUpdateDebitCardOfAnotherUser()
+    {
+        $otherUser = User::factory()->create();
+        $debitCard = DebitCard::factory()->active()->create([
+            'user_id' => $otherUser->id,
+        ]);
+        $payload = [
+            'is_active' => false
+        ];
+
+        $response = $this->putJson("/api/debit-cards/{$debitCard->id}", $payload);
+
+        $response->assertForbidden();
+        $this->assertDatabaseHas('debit_cards', [
+            'user_id' => $debitCard->user_id,
+            'disabled_at' => null,
+        ]);
+    }
 }
