@@ -121,4 +121,18 @@ class DebitCardTransactionControllerTest extends TestCase
     }
 
     // Extra bonus for extra tests :)
+    public function testCustomerCannotCreateTransactionWithInvalidCurrency()
+    {
+        $payload = [
+            'debit_card_id' => $this->debitCard->id,
+            'amount' => 5000,
+            'currency_code' => 'USD'
+        ];
+
+        $response = $this->postJson('/api/debit-card-transactions', $payload);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['currency_code']);
+    }
+
 }
